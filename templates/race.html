@@ -1,0 +1,829 @@
+<style>html{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>مسابقة أثر · MATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a race-day program — sticky scoreboard header, a personal "my lane" card first, then the car track, prize board, and the field. */
+:root{
+  --bg:#F3F5F4; --surface:#FFFFFF; --sunk:#E7ECEA; --ink:#0F2A2A; --muted:#55706D; --line:#D3DDDA;
+  --brand:#0E4D4A; --brand-ink:#FFFFFF; --gold:#B7842A; --gold-soft:#F4E7CC;
+  --good:#1E7F52; --good-soft:#DDF1E6; --warn:#A86A06; --warn-soft:#FBEBCB; --bad:#B23B30; --bad-soft:#F7DEDA;
+  --on-gold:#FFFFFF; --t-car:#B7842A; --t-phone:#2E5FA8; --t-ipad:#6B4BA3; --t-watch:#1E7F72; --t-gold:#9A6B12;
+  --f-display:"Reem Kufi","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1817; --surface:#112423; --sunk:#0E1F1E; --ink:#E4EEEC; --muted:#8FA9A5; --line:#22403D;
+  --brand:#5FC0B4; --brand-ink:#06201E; --gold:#E2B45A; --gold-soft:#3A2E16;
+  --good:#5BC98F; --good-soft:#123527; --warn:#E5A93D; --warn-soft:#3A2A0C; --bad:#EC7B6F; --bad-soft:#3D1A16;
+  --on-gold:#2A1C04; --t-car:#E2B45A; --t-phone:#7FA7EA; --t-ipad:#B49AE6; --t-watch:#5FC0B4; --t-gold:#D9A94C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1817; --surface:#112423; --sunk:#0E1F1E; --ink:#E4EEEC; --muted:#8FA9A5; --line:#22403D;
+  --brand:#5FC0B4; --brand-ink:#06201E; --gold:#E2B45A; --gold-soft:#3A2E16;
+  --good:#5BC98F; --good-soft:#123527; --warn:#E5A93D; --warn-soft:#3A2A0C; --bad:#EC7B6F; --bad-soft:#3D1A16;
+  --on-gold:#2A1C04; --t-car:#E2B45A; --t-phone:#7FA7EA; --t-ipad:#B49AE6; --t-watch:#5FC0B4; --t-gold:#D9A94C; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+[dir="rtl"] .num{direction:ltr;unicode-bidi:isolate;display:inline-block}
+[dir="rtl"] td.num{display:table-cell}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.45rem;line-height:1.25}
+.eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+[dir="rtl"] .eyebrow{letter-spacing:0;text-transform:none;font-size:.8rem}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* header */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--brand)}
+.top{background:var(--brand);color:var(--brand-ink);position:sticky;top:env(safe-area-inset-top,0px);z-index:9}
+.top .wrap{display:flex;align-items:center;gap:14px;padding-block:10px;flex-wrap:wrap}
+.mark{font-family:var(--f-display);font-size:1.9rem;line-height:1;font-weight:700}
+.mark small{display:block;font-family:var(--f-body);font-size:.68rem;font-weight:500;opacity:.8;margin-top:2px}
+.clock{display:flex;gap:18px;margin-inline-start:auto;flex-wrap:wrap;align-items:center}
+.clock div{font-size:.72rem;opacity:.85;line-height:1.2}
+.clock b{display:block;font-size:1.05rem;opacity:1;font-family:var(--f-num)}
+/* Countdown — gold flip clock: dark cards with a gold frame + glow, gold seam, colon separators, pulsing seconds. */
+.countdown{display:flex;align-items:flex-end;gap:7px;margin-top:5px}
+.countdown .u{display:flex;flex-direction:column;align-items:center;gap:5px}
+.countdown .u b{position:relative;min-width:46px;padding:9px 10px;text-align:center;line-height:1;
+  font-family:var(--f-num);font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;color:#fff;
+  background:linear-gradient(180deg,#403a2b 0 50%,#171205 50% 100%);
+  border:1px solid rgba(226,180,90,.55);border-radius:9px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(226,180,90,.28),0 3px 8px rgba(0,0,0,.45)}
+.countdown .u b::after{content:"";position:absolute;inset-inline:3px;top:50%;height:2px;margin-top:-1px;background:rgba(226,180,90,.5)}
+.countdown .u i{font-style:normal;font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#E2B45A}
+.countdown .sep{align-self:center;font-family:var(--f-num);font-size:1.3rem;font-weight:700;color:#E2B45A;opacity:.8;padding-bottom:16px}
+.countdown .u.sec b{animation:cdpulse 1s ease-in-out infinite}
+@keyframes cdpulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 14px rgba(226,180,90,.28),0 3px 8px rgba(0,0,0,.45)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 22px rgba(226,180,90,.62),0 3px 8px rgba(0,0,0,.45)}}
+@media (prefers-reduced-motion:reduce){.countdown .u.sec b{animation:none}}
+.tog{display:flex;gap:6px}
+.tog button{background:transparent;border:1px solid color-mix(in srgb,var(--brand-ink) 40%,transparent);color:var(--brand-ink);border-radius:999px;padding:4px 11px;font-size:.8rem}
+.tog button[aria-pressed="true"]{background:var(--brand-ink);color:var(--brand)}
+nav.secs{background:var(--surface);border-bottom:1px solid var(--line)}
+nav.secs .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:6px;scrollbar-width:none}
+nav.secs a{white-space:nowrap;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:8px;font-size:.88rem;font-weight:500}
+nav.secs a:hover{background:var(--sunk);color:var(--ink)}
+
+section{padding-block:30px;border-bottom:1px solid var(--line)}
+.sh{display:flex;align-items:end;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.sh p{margin:4px 0 0;color:var(--muted);max-width:68ch;font-size:.92rem}
+
+/* hero / pulse */
+.pulse{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:12px;margin-top:18px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.tile .v{font-family:var(--f-num);font-size:1.7rem;font-weight:600;line-height:1.1;margin-top:4px}
+.tile .s{font-size:.8rem;color:var(--muted);margin-top:4px}
+.tile.lead{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tile.lead .s,.tile.lead .eyebrow{color:color-mix(in srgb,var(--bg) 70%,transparent)}
+.meter{height:8px;border-radius:99px;background:color-mix(in srgb,currentColor 18%,transparent);margin-top:10px;position:relative;overflow:hidden}
+.meter i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:var(--gold)}
+.headline{font-family:var(--f-display);font-size:clamp(1.6rem,4.2vw,2.6rem);line-height:1.2;font-weight:700;max-width:24ch}
+.headline em{font-style:normal;color:var(--gold)}
+
+/* finder */
+.finder{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;position:relative}
+.finder label{font-weight:600;display:block;margin-bottom:8px}
+.sbox{position:relative}
+.sbox input{width:100%;font:inherit;font-size:1.05rem;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.sugg{position:absolute;inset-inline:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:10px;z-index:5;max-height:320px;overflow:auto;box-shadow:0 10px 30px -12px rgba(0,0,0,.35)}
+.sugg button{display:flex;width:100%;text-align:start;gap:10px;align-items:center;padding:9px 12px;background:none;border:0;border-bottom:1px solid var(--line)}
+.sugg button:hover,.sugg button.on{background:var(--sunk)}
+.sugg .k{font-size:.7rem;padding:2px 7px;border-radius:99px;background:var(--sunk);color:var(--muted);flex:none}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.quick button{background:var(--sunk);border:0;border-radius:99px;padding:4px 11px;font-size:.82rem}
+.mine{margin-top:16px}
+
+/* my lane */
+.lane{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.lane>div{min-width:0}
+.big{font-family:var(--f-num);font-size:3rem;font-weight:600;line-height:1}
+.status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:.82rem;font-weight:600}
+.st-in{background:var(--good-soft);color:var(--good)}
+.st-near{background:var(--warn-soft);color:var(--warn)}
+.st-out{background:var(--bad-soft);color:var(--bad)}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.kv div{background:var(--sunk);border-radius:8px;padding:9px 11px;min-width:0}
+.kv b{display:block;font-family:var(--f-num);font-size:1.05rem}
+.kv span{font-size:.75rem;color:var(--muted)}
+.need{margin-top:14px;padding:12px 14px;border:1.5px dashed var(--gold);border-radius:10px;background:var(--gold-soft)}
+.need b{font-family:var(--f-num)}
+.calc{margin-top:12px}
+.calc input[type=range]{width:100%;accent-color:var(--gold)}
+.chart svg{width:100%;height:auto;display:block}
+.roster{width:100%;border-collapse:collapse;font-size:.88rem}
+.roster td,.roster th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:start}
+.roster th{font-size:.74rem;color:var(--muted);font-weight:600}
+.roster td.n{text-align:end}
+.roster tr.me td{background:var(--gold-soft)}
+.bar{height:6px;border-radius:9px;background:var(--sunk);position:relative;min-width:50px}
+.bar i{position:absolute;inset-block:0;inset-inline-start:0;background:var(--brand);border-radius:9px}
+.pos{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:.75rem;font-weight:700;background:var(--sunk)}
+.pos.p1{background:var(--gold);color:#fff}
+.flag{font-size:.75rem;color:var(--warn);margin-top:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{border:0;background:var(--brand);color:var(--brand-ink);padding:9px 14px;border-radius:9px;font-weight:600;font-size:.88rem}
+.btn.ghost{background:var(--sunk);color:var(--ink)}
+
+/* tiers */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.T-A{color:var(--t-car)}.T-B{color:var(--t-phone)}.T-C{color:var(--t-ipad)}.T-D{color:var(--t-watch)}.T-E{color:var(--t-gold)}
+.chip.none{color:var(--muted)}
+
+/* car track */
+.track{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 10px;overflow-x:auto}
+.trk{min-width:560px}
+.trow{display:grid;grid-template-columns:170px 1fr 120px;gap:12px;align-items:center;padding-block:7px;border-bottom:1px dashed var(--line)}
+.trow:last-child{border-bottom:0}
+.trow .nm{font-weight:600;font-size:.9rem;line-height:1.25;min-width:0}
+.trow .nm small{display:block;color:var(--muted);font-weight:400;font-size:.74rem}
+.road{position:relative;height:30px;background:repeating-linear-gradient(90deg,var(--sunk) 0 18px,transparent 18px 24px);border-radius:6px}
+[dir="rtl"] .road{background:repeating-linear-gradient(270deg,var(--sunk) 0 18px,transparent 18px 24px)}
+.road .fill{position:absolute;inset-block:9px;inset-inline-start:0;background:color-mix(in srgb,var(--t-car) 55%,transparent);border-radius:6px}
+.road .car{position:absolute;top:50%;transform:translate(-50%,-50%);width:30px;height:22px}
+[dir="rtl"] .road .car{transform:translate(50%,-50%) scaleX(-1)}
+.road .fin{position:absolute;inset-block:-6px;width:4px;background:repeating-linear-gradient(0deg,var(--ink) 0 4px,var(--surface) 4px 8px)}
+.trow .pct{font-family:var(--f-num);font-weight:600;text-align:end}
+.trow .pct small{display:block;font-weight:500;color:var(--muted);font-size:.72rem}
+.axis{display:grid;grid-template-columns:170px 1fr 120px;gap:12px;font-size:.7rem;color:var(--muted)}
+.axis .ticks{position:relative;height:16px}
+.axis .ticks span{position:absolute;transform:translateX(-50%)}
+[dir="rtl"] .axis .ticks span{transform:translateX(50%)}
+
+/* prize board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pcol{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.pcol h3{font-size:1rem;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pcol .th{font-size:.74rem;color:var(--muted);margin:2px 0 10px}
+.win{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.win .w{min-width:0;flex:1}
+.win b{display:block;font-size:.88rem;line-height:1.3}
+.win small{color:var(--muted);font-size:.76rem;display:block}
+.win .p{font-family:var(--f-num);font-weight:600;font-size:.85rem}
+.empty{font-size:.82rem;color:var(--muted);padding:10px 0;border-top:1px solid var(--line)}
+.note{font-size:.8rem;color:var(--muted);margin-top:12px;max-width:90ch}
+
+/* lists */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.panel h3{font-size:1rem;margin-bottom:2px}
+.panel .sub{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.li{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.li .w{min-width:0}
+.li b{display:block;font-size:.88rem;line-height:1.3;overflow-wrap:anywhere}
+.li small{display:block;color:var(--muted);font-size:.75rem}
+.li .r{text-align:end;font-family:var(--f-num);font-weight:600;font-size:.88rem}
+.li .r small{font-family:var(--f-body);font-weight:400}
+.li.click{cursor:pointer}
+.li.click:hover{background:var(--sunk)}
+.up{color:var(--good)}.dn{color:var(--bad)}
+
+/* table */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filters select,.filters input{font:inherit;font-size:.88rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table.all{width:100%;border-collapse:collapse;font-size:.85rem;min-width:860px}
+table.all th{position:sticky;top:0;background:var(--sunk);text-align:start;font-size:.74rem;color:var(--muted);padding:9px 8px;font-weight:600;cursor:pointer;white-space:nowrap}
+table.all td{padding:8px;border-top:1px solid var(--line);white-space:nowrap}
+table.all td.n,table.all th.n{text-align:end}
+table.all tr:hover td{background:var(--sunk);cursor:pointer}
+/* All-stores table has 12 columns: wrap headers, tighten, and cap the two long text columns so every column fits without horizontal scroll on desktop (it still scrolls on narrow phones). */
+#allTbl{min-width:0;font-size:.78rem}
+#allTbl th{white-space:normal;padding:7px 5px;line-height:1.15}
+#allTbl td{padding:6px 5px}
+#allTbl td:nth-child(2){max-width:150px}
+#allTbl td:nth-child(2) b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#allTbl td:nth-child(2) span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#allTbl td:nth-child(12){max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.achcell{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.minibar{width:70px;height:6px;background:var(--sunk);border-radius:9px;position:relative;overflow:hidden}
+.minibar i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:9px}
+
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.rule .n{font-family:var(--f-display);font-size:1.6rem;color:var(--gold);line-height:1}
+.rule h3{font-size:.98rem;margin:6px 0 4px}
+.rule p{margin:0;font-size:.86rem;color:var(--muted)}
+table.mini{width:100%;border-collapse:collapse;font-size:.85rem}
+table.mini td,table.mini th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:start}
+table.mini th{font-size:.74rem;color:var(--muted)}
+.cycle{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px}
+.cycle div{background:var(--sunk);border-radius:8px;padding:9px;font-size:.8rem;min-width:0}
+.cycle b{display:block;font-family:var(--f-num);color:var(--brand)}
+.newsbar{padding-block:12px 0}
+.nbox{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.nhead{background:var(--gold);color:var(--on-gold);padding:10px 14px;display:flex;flex-direction:column;gap:3px;justify-content:center;flex:none;min-width:150px}
+.nhead b{font-family:var(--f-display);font-size:1.1rem;line-height:1.1}
+.nhead small{font-size:.74rem;opacity:.92}
+.nhead button{margin-top:4px;background:rgba(0,0,0,.22);border:0;color:var(--on-gold);border-radius:99px;padding:3px 10px;font-size:.74rem;align-self:flex-start}
+.nview{flex:1;min-width:0;overflow:hidden;position:relative;display:flex;align-items:center;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.ntrack{display:flex;gap:28px;width:max-content;padding-inline:16px}
+.nitem{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:.86rem;cursor:pointer;background:none;border:0;padding:6px 0}
+.nitem .tag{font-size:.74rem;font-weight:600;padding:3px 9px;border-radius:99px}
+.nitem .who{font-weight:700;color:var(--brand)}
+.nitem .meta{color:var(--muted);font-size:.8rem}
+.tg-in{background:var(--good-soft);color:var(--good)}.tg-out{background:var(--bad-soft);color:var(--bad)}
+.tg-jump{background:var(--good-soft);color:var(--good)}.tg-climb{background:var(--sunk);color:var(--brand)}
+.tg-star{background:var(--gold-soft);color:var(--warn)}.tg-tier{background:var(--sunk);color:var(--t-phone)}
+@media (prefers-reduced-motion:no-preference){
+ .ntrack.run{animation:tick var(--dur,60s) linear infinite}
+ [dir="rtl"] .ntrack.run{animation-name:tickr}
+ .nview:hover .ntrack.run,.nview:focus-within .ntrack.run{animation-play-state:paused}
+}
+@media (prefers-reduced-motion:reduce){.nview{overflow-x:auto}}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes tickr{from{transform:translateX(0)}to{transform:translateX(50%)}}
+.nall[hidden]{display:none}
+.nall{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;background:var(--surface);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:6px 16px 10px;margin-top:-8px;padding-top:14px}
+.nall .nitem{white-space:normal;border-top:1px solid var(--line);padding:8px 0;text-align:start;flex-wrap:wrap}
+@media (max-width:640px){.nhead{min-width:118px;padding:8px 10px}.nall{grid-template-columns:1fr}}
+footer{padding-block:24px;font-size:.8rem;color:var(--muted)}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));inset-inline-start:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:9px;font-size:.88rem;z-index:20}
+[dir="rtl"] .toast{transform:translateX(50%)}
+textarea.copyfb{width:100%;min-height:120px;margin-top:8px;font:inherit;font-size:.85rem;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+
+@media (max-width:900px){
+  .pulse{grid-template-columns:1fr 1fr}
+  .board{grid-template-columns:1fr 1fr}
+  .lane,.grid2{grid-template-columns:1fr}
+  .grid3,.rules{grid-template-columns:1fr}
+  .cycle{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:520px){
+  .pulse,.board{grid-template-columns:1fr}
+  .clock{gap:12px;margin-inline-start:0;width:100%}
+  .kv{grid-template-columns:1fr 1fr}
+  .big{font-size:2.4rem}
+}
+@media (prefers-reduced-motion:no-preference){
+  .road .car,.road .fill{transition:all .8s cubic-bezier(.2,.8,.2,1)}
+}
+</style>
+
+
+<header class="top">
+  <div class="wrap">
+    <div class="mark"><span data-t="brand">مسابقة أثر</span><small data-t="brandSub">سباق MATCH · أكتوبر 2026</small></div>
+    <div class="clock">
+      <div><span data-t="dataTo">البيانات حتى</span><b id="hAsOf">—</b></div>
+      <div class="cd"><span data-t="daysLeft">الأيام المتبقية</span>
+        <div id="hCountdown" class="countdown" aria-live="off">
+          <span class="u"><b data-cd="d">—</b><i data-t="cdD">يوم</i></span>
+          <span class="sep" aria-hidden="true">:</span>
+          <span class="u"><b data-cd="h">—</b><i data-t="cdH">ساعة</i></span>
+          <span class="sep" aria-hidden="true">:</span>
+          <span class="u"><b data-cd="m">—</b><i data-t="cdM">دقيقة</i></span>
+          <span class="sep" aria-hidden="true">:</span>
+          <span class="u sec"><b data-cd="s">—</b><i data-t="cdS">ثانية</i></span>
+        </div>
+      </div>
+      <div><span data-t="announce">إعلان النتائج</span><b id="hAnn">10 Nov</b></div>
+      <div><span data-t="updated">آخر تحديث</span><b id="hUpd">—</b></div>
+      <div class="tog" role="group" aria-label="Language">
+        <button id="bAr" aria-pressed="true">عربي</button><button id="bEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </div>
+</header>
+<nav class="secs" aria-label="Sections"><div class="wrap">
+  <a href="#mine" data-t="nMine">فرعي</a><a href="#car" data-t="nCar">سباق السيارة</a><a href="#board" data-t="nBoard">لوحة الجوائز</a>
+  <a href="#close" data-t="nClose">على بُعد خطوة</a><a href="#movers" data-t="nMovers">الصاعدون</a><a href="#stars" data-t="nStars">نجوم المبيعات</a>
+  <a href="#areas" data-t="nAreas">المناطق</a><a href="#all" data-t="nAll">كل الفروع</a><a href="#rules" data-t="nRules">كيف تفوز؟</a>
+</div></nav>
+<div class="newsbar"><div class="wrap">
+  <div class="nbox"><div class="nhead"><b id="nTitle">أخبار التأهيل</b><small id="nSub"></small><button id="nBtn" aria-expanded="false"></button></div>
+  <div class="nview"><div class="ntrack" id="ntrack"></div></div></div>
+  <div class="nall" id="nall" hidden></div>
+</div></div>
+
+<main>
+  <section style="border-bottom:0;padding-bottom:6px"><div class="wrap">
+    <div class="eyebrow" data-t="pulseEy">نبض الشهر</div>
+    <h1 class="headline" id="headline"></h1>
+    <div class="pulse" id="pulse"></div>
+  </div></section>
+
+  <section id="mine"><div class="wrap">
+    <div class="finder">
+      <label for="q" data-t="findLbl">اكتب اسم فرعك أو رقمك الوظيفي أو اسمك</label>
+      <div class="sbox">
+        <input id="q" type="search" autocomplete="off" data-tp="findPh" placeholder="مثال: Abraj · 2958 · Ahmed">
+        <div class="sugg" id="sugg" hidden></div>
+      </div>
+      <div class="quick" id="quick"></div>
+      <div class="mine" id="mineOut"></div>
+    </div>
+  </div></section>
+
+  <section id="car"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="carEy">الفئة A · جائزة واحدة على مستوى الشركة</div>
+      <h2 data-t="carH">سباق السيارة</h2>
+      <p data-t="carP">خط النهاية 100% من المستهدف. وللدخول يجب أن تتجاوز مبيعات الفرع في الشهر 400,000 ريال (حد MATCH). يُعرض هنا كل فرع يمكنه بلوغ هذا الحد.</p>
+    </div></div>
+    <div class="track"><div class="trk" id="track"></div></div>
+  </div></section>
+
+  <section id="board"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="boardEy">لو انتهى الشهر بنفس الوتيرة</div>
+      <h2 data-t="boardH">لوحة الجوائز المتوقعة</h2>
+      <p data-t="boardP">نرتب الفروع المتوقع بلوغها 100% فأكثر حسب نسبة التحقيق، ويأخذ كل فرع أعلى فئة يسمح بها حد مبيعاته. فرع واحد = جائزة واحدة، ويفوز بها الموظف الأعلى مبيعات في الفرع.</p>
+    </div></div>
+    <div class="board" id="prizes"></div>
+    <p class="note" id="boardNote"></p>
+  </div></section>
+
+  <section id="close"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="closeEy">قائمة الانتظار</div>
+      <h2 data-t="closeH">على بُعد خطوة من الجوائز</h2>
+      <p data-t="closeP">فروع بين 85% و100% من المستهدف. الرقم يوضح كم تحتاج يومياً فوق المعتاد حتى تصل إلى 100% بنهاية الشهر.</p>
+    </div></div>
+    <div class="grid2" id="closeList"></div>
+  </div></section>
+
+  <section id="movers"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="movEy">الزخم</div>
+      <h2 data-t="movH">الأكثر صعوداً</h2>
+    </div></div>
+    <div class="grid3" id="moverList"></div>
+  </div></section>
+
+  <section id="stars"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="starEy">الموظفون</div>
+      <h2 data-t="starH">نجوم المبيعات</h2>
+      <p data-t="starP">ترتيب حسب المبيعات المسجلة بحساب كل موظف منذ 1 أكتوبر. مبيعات حساب الفرع لا تدخل ترتيب الموظفين.</p>
+    </div></div>
+    <div class="grid3" id="starList"></div>
+  </div></section>
+
+  <section id="areas"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="areaEy">للمتابعة والتدريب · مديرو المناطق خارج المنافسة</div>
+      <h2 data-t="areaH">ترتيب المناطق</h2>
+    </div></div>
+    <div class="tbl"><table class="all" id="amTbl" style="min-width:640px"></table></div>
+  </div></section>
+
+  <section id="all"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="allEy">المملكة العربية السعودية</div>
+      <h2 data-t="allH">كل الفروع</h2>
+      <p data-t="allP">اضغط على أي فرع لفتح بطاقته. اضغط على عنوان العمود للترتيب.</p>
+    </div></div>
+    <div class="filters">
+      <select id="fAm" aria-label="Area manager"></select>
+      <select id="fCity" aria-label="City"></select>
+      <select id="fZone" aria-label="Zone"></select>
+      <input id="fTxt" type="search" data-tp="filterPh" placeholder="بحث" aria-label="Search">
+    </div>
+    <div class="tbl"><table class="all" id="allTbl"></table></div>
+  </div></section>
+
+  <section id="rules"><div class="wrap">
+    <div class="sh"><div>
+      <div class="eyebrow" data-t="rulesEy">من دليل برنامج أثر · نسخة الإطلاق</div>
+      <h2 data-t="rulesH">كيف تفوز؟</h2>
+    </div></div>
+    <div class="rules" id="ruleCards"></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel"><h3 data-t="thrH">الجوائز وحدود MATCH</h3><div class="sub" data-t="thrSub">يُشترط 100% من المستهدف + حد المبيعات</div><table class="mini" id="thrTbl"></table></div>
+      <div class="panel"><h3 data-t="exH">ما يُخرجك من الجوائز</h3><div class="sub" data-t="exSub">أي مخالفة رسمية مسجلة في MenaMe خلال الشهر</div><div id="exList"></div></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h3 data-t="cycH">بعد نهاية الشهر</h3><div class="cycle" id="cycle"></div></div>
+  </div></section>
+</main>
+<footer><div class="wrap" id="foot"></div></footer>
+<div class="toast" id="toast" hidden></div>
+
+<script id="embed" type="application/json">{}</script>
+<script>
+const D = JSON.parse(document.getElementById('embed').textContent);
+const L = D.last, NDAYS = D.days, LEFT = D.left;
+const TIERS = [
+  {k:'A', min:400000, n:1,  ar:'سيارة', en:'Car', ex:{ar:'12 شهراً',en:'12 months'}},
+  {k:'B', min:200000, n:10, ar:'جوال ذكي', en:'Smartphone', ex:{ar:'6 أشهر',en:'6 months'}},
+  {k:'C', min:150000, n:10, ar:'آيباد', en:'iPad', ex:{ar:'3 أشهر',en:'3 months'}},
+  {k:'D', min:100000, n:10, ar:'ساعة ذكية', en:'Smartwatch', ex:{ar:'شهران',en:'2 months'}},
+  {k:'E', min:75000,  n:10, ar:'سبيكة ذهب', en:'Gold bar', ex:{ar:'لا يوجد',en:'None'}},
+];
+const S = {
+ ar:{nTitle:'أخبار التأهيل',nSub:(d,a,b)=>`يوم ${d} · دخل ${a} · تراجع ${b}`,nBtn:(n)=>`📋 عرض كل الأخبار (${n})`,nHide:'إخفاء الأخبار',
+  tgIn:'🎉 دخل الجوائز',tgOut:'⚠️ خرج من الجوائز',tgJump:'🚀 قفزة اليوم',tgClimb:'⬆️ صعود',tgStar:'⭐ نجم اليوم',tgTier:'🔁 تغيّرت الفئة',
+  nPts:(x)=>`+${x} نقطة`,nRank:(r)=>`الآن المركز ${r}`,nMv:(m)=>`صعد ${m} مراكز`,nNowTier:(t)=>`متوقع: ${t}`,nWas:(t)=>`كان: ${t}`,nPos:(p)=>`الأعلى مبيعاً أمس #${p}`,
+  brand:'مسابقة أثر',brandSub:'سباق MATCH · أكتوبر 2026',dataTo:'البيانات حتى',daysLeft:'العد التنازلي',announce:'إعلان النتائج',updated:'آخر تحديث',cdD:'يوم',cdH:'ساعة',cdM:'دقيقة',cdS:'ثانية',
+  nMine:'فرعي',nCar:'سباق السيارة',nBoard:'لوحة الجوائز',nClose:'على بُعد خطوة',nMovers:'الصاعدون',nStars:'نجوم المبيعات',nAreas:'المناطق',nAll:'كل الفروع',nRules:'كيف تفوز؟',
+  pulseEy:'نبض الشهر',findLbl:'اكتب اسم فرعك أو رقمك الوظيفي أو اسمك',findPh:'مثال: Abraj · 2958 · Ahmed',
+  carEy:'الفئة A · جائزة واحدة على مستوى الشركة',carH:'سباق السيارة',carP:'خط النهاية 100% من المستهدف، مع بلوغ حد مبيعات فئة السيارة لفروع MATCH. يظهر هنا كل فرع يمكنه المنافسة عليها.',
+  boardEy:'لو انتهى الشهر بنفس الوتيرة',boardH:'لوحة الجوائز المتوقعة',boardP:'نرتب الفروع المتوقع بلوغها 100% فأكثر حسب نسبة التحقيق، ويأخذ كل فرع أعلى فئة يسمح بها حد مبيعاته. فرع واحد = جائزة واحدة، ويفوز بها الموظف الأعلى مبيعات في الفرع.',
+  closeEy:'قائمة الانتظار',closeH:'على بُعد خطوة من الجوائز',closeP:'فروع بين 85% و100% من المستهدف. النسبة توضح كم يجب أن ترتفع وتيرة آخر 3 أيام حتى يصل الفرع إلى 100% بنهاية الشهر.',
+  movEy:'الزخم',movH:'الأكثر صعوداً',starEy:'الموظفون',starH:'نجوم المبيعات',starP:'ترتيب حسب المبيعات المسجلة بحساب كل موظف منذ 1 أكتوبر. مبيعات حساب الفرع لا تدخل ترتيب الموظفين.',
+  areaEy:'للمتابعة والتدريب · مديرو المناطق خارج المنافسة',areaH:'ترتيب المناطق',allEy:'المملكة العربية السعودية',allH:'كل الفروع',allP:'اضغط على أي فرع لفتح بطاقته. اضغط على عنوان العمود للترتيب.',filterPh:'بحث',
+  rulesEy:'من دليل برنامج أثر · نسخة الإطلاق',rulesH:'كيف تفوز؟',thrH:'الجوائز وحدود MATCH',thrSub:'يُشترط 100% من المستهدف + حد المبيعات الشهري للفئة',exH:'ما يُخرجك من الجوائز',exSub:'أي مخالفة رسمية مسجلة في MenaMe خلال الشهر',cycH:'بعد نهاية الشهر',
+  ach:'التحقيق',rank:'الترتيب',ly:'مقابل العام الماضي',
+  inZone:'داخل منطقة الجوائز',near:'قريب جداً',out:'خارج المنافسة حالياً',
+  headline:(a,n,c)=>`MATCH عند <em>${a}</em> من المستهدف، و<em>${n}</em> فروع في طريقها للجوائز. ${c}`,
+  carNone:'السيارة لم تُحسم بعد.',carLead:(s)=>`${s} يقود سباق السيارة.`,
+  pMonth:'تحقيق MATCH للمملكة',pMonthS:(m)=>`أُنجز ${m} من مستهدف أكتوبر كاملاً`,pIn:'فروع داخل الجوائز',pInS:'متوقع ≥100% مع حد المبيعات',pNear:'على بُعد خطوة',pNearS:'بين 85% و100%',pLy:'مقابل أكتوبر الماضي',pLyS:'الفروع المماثلة، نفس التواريخ',
+  k3:'آخر 3 أيام',k7:'آخر 7 أيام',kDay:'أمس',kMonth:'من مستهدف الشهر كاملاً',kAtv:'متوسط الفاتورة مقابل الشركة',kConv:'التحويل (زوار → فواتير)',
+  needTitle:'المطلوب للوصول إلى 100%',
+  needUp:(x)=>`ارفعوا أداء آخر 3 أيام بنسبة <b>${x}</b> واستمروا عليه حتى آخر الشهر، وتصلون إلى 100%.`,
+  needKeep:(x)=>`حافظوا على أداء آخر 3 أيام وتصلون إلى 100%، وعندكم هامش ${x}.`,
+  needDone:'حققتم مستهدف الشهر كاملاً. كل فاتورة إضافية ترفع ترتيبكم.',
+  nextUp:(t,x)=>`ولفئة ${t}: ارفعوا الوتيرة بنسبة ${x}.`,nextKeep:(t)=>`وبوتيرة آخر 3 أيام تصعدون إلى فئة ${t}.`,
+  calcLbl:'جرّب: لو غيّرنا أداء آخر 3 أيام بنسبة',calcRes:(p,t)=>`نهاية الشهر: <b>${p}</b> من المستهدف · ${t}`,slotNote:'(إن بقيت ضمن الحصة)',
+  zoneNow:'الجائزة المتوقعة الآن',noPrize:'لا جائزة بعد',storeTeam:'فريق الفرع',share:'الحصة من مبيعات الفرع',winnerNote:'الأعلى مبيعاً في الفرع يأخذ الجائزة.',
+  carTeam:'فرع السيارة: الأول سيارة، الثاني جوال، الثالث آيباد، وبقية الفريق قسيمة شرائية.',
+  flag60:(n)=>`تنبيه: ${n} يمثل أكثر من 60% من مبيعات الفرع، والفرع سيُرفع للمراجعة قبل اعتماد النتائج.`,
+  copyBtn:'انسخ رسالة واتساب',clearBtn:'تغيير',copied:'تم النسخ',copyFail:'حدد النص وانسخه يدوياً',
+  youRank:(r,n)=>`ترتيبك ${r} من ${n} في الفرع`,ofTop:(x)=>`مبيعاتك = ${x} من مبيعات الأول في الفرع`,youTop:'أنت الأول في فرعك الآن',
+  staffNote:'جائزة الفرع يأخذها الأعلى مبيعاً بحسابه الشخصي. احرص على البيع بحسابك.',
+  sShare:'حصتك من مبيعات الفرع',sG7:'آخر 7 أيام مقابل الـ7 قبلها',sAtv:'متوسط فاتورتك مقابل الشركة',
+  dailyChart:'التحقيق التراكمي (% من مستهدف الشهر)',actual:'الفعلي',tgtLine:'المستهدف',projL:'المتوقع',
+  kStore:'فرع',kStaff:'موظف',
+  carProj:'يتجاوز حد السيارة',carNeed:(x)=>`يحتاج ${x} فوق المتوقع لحد السيارة`,
+  slots:(n)=>`${n} جوائز`,slot1:'جائزة واحدة',emptyTier:'لا يوجد فرع مؤهل حتى الآن. المكان متاح.',
+  boardNote:'تقدير يومي للتحفيز فقط. السيارة والحصص الأربعون يتنافس عليها فرعا IBRAQ وMATCH معاً، وحصة السوق السعودي 34 جائزة. النتائج الرسمية تُعلن يوم 10 نوفمبر بعد المطابقة والتدقيق وخصم أي مخالفات.',
+  upTag:(x)=>`ارفع ${x}`,keepTag:'حافظ على الوتيرة',
+  mvDay:'أفضل يوم أمس',mvDayS:(d)=>`تحقيق يوم ${d} مقابل مستهدف اليوم`,mvWeek:'تسارع الأسبوع',mvWeekS:'تحقيق آخر 7 أيام مقابل الـ7 قبلها (نقاط)',mvLy:'نمو على العام الماضي',mvLyS:'منذ بداية الشهر، الفروع المماثلة',pts:'نقطة',
+  stTop:'الأعلى مبيعاً',stTopS:'منذ 1 أكتوبر · الرقم = حصته من مبيعات فرعه',stHot:'الأسرع نمواً',stHotS:'آخر 7 أيام مقابل الـ7 قبلها',stAtv:'أعلى متوسط فاتورة',stAtvS:'مقابل متوسط الشركة · 60 فاتورة فأكثر',
+  amCols:['مدير المنطقة','الفروع','التحقيق','داخل الجوائز','قريبة','مقابل العام الماضي','الأفضل'],
+  allCols:['#','الفرع','المدينة','المنطقة','التحقيق','آخر 3 أيام','أمس','المطلوب لـ100%','الجائزة المتوقعة','سقف الفرع','مقابل العام الماضي','الأول في الفرع'],
+  allAm:'كل المناطق',allCity:'كل المدن',allZone:'كل الحالات',
+  ruleCards:[
+   ['حقق 100% من المستهدف','نسبة التحقيق = صافي مبيعات الفرع ÷ مستهدف الشهر. لا يدخل أي فرع الترتيب قبل 100%.'],
+   ['تجاوز حد مبيعات الفئة','فروع MATCH تحتاج حداً أدنى للمبيعات الشهرية لكل فئة، كما في الجدول أدناه.'],
+   ['الأعلى تحقيقاً يأخذ الأعلى','السيارة سباق واحد على مستوى الشركة. بعدها تُوزع الجوائز تنازلياً بنسبة التحقيق ضمن حصة كل سوق.'],
+   ['الفائز هو الأعلى مبيعاً بحسابه','من الفرع الفائز يفوز الموظف الأعلى مبيعات مسجلة باسمه. مبيعات حساب الفرع لا تُحتسب.'],
+   ['فرع واحد = جائزة واحدة','الفرع الفائز يُستبعد من بقية الفئات ذلك الشهر، والموظف يستحق جائزة واحدة.'],
+   ['عند التعادل','نمو الشهر مقابل العام الماضي، ثم عدد الفواتير، ثم متوسط قيمة الفاتورة.']],
+  thrCols:['الفئة','الجائزة','العدد','حد MATCH الشهري','الإقصاء بعد الفوز'],
+  ex:['التلاعب في الفواتير أو الخصومات أو المرتجعات','سوء التعامل مع العملاء (بشكوى رسمية أو تسجيل CCTV)','الغياب غير المبرر أو التأخر المتكرر','الزي الرسمي أو الهيئة أو استخدام الجوال في منطقة المبيعات','نظافة الفرع','عدم الالتزام بالتعطير والتبخير (بصورة أو فيديو موثق)'],
+  cyc:[['1–4','ملف المخالفات'],['4–6','احتساب النتائج من Odoo'],['6–8','إعادة احتساب مستقلة من المالية'],['10','إعلان الفائزين'],['15','تسليم الجوائز']],
+  foot:(d)=>`المصدر: ملف MATCH Sales Dashboard أكتوبر 2026 (حتى ${d}) ودليل برنامج أثر. كل الأرقام نسب مئوية. التحقيق = المبيعات حتى الآن ÷ المستهدف التراكمي حتى اليوم، وهو أيضاً التحقيق المتوقع لنهاية الشهر بنفس الوتيرة. فرع قطر (افتُتح 1 أكتوبر) وفرع دبي (بلا مستهدف) خارج الترتيب لأن السوقين غير مدرجين في حصص البرنامج بعد.`,
+  waStore:(o)=>`🏁 مسابقة أثر · ${o.name}\nالتحقيق حتى ${o.d}: ${o.ach}\nآخر 3 أيام: ${o.a3}\nالترتيب: ${o.rank}\nالجائزة المتوقعة: ${o.prize}\n${o.need}\nيلا يا فريق، اتركوا أثركم 💪`,
+  waUp:(x)=>`للوصول إلى 100%: ارفعوا أداء آخر 3 أيام ${x}`,waKeep:'بوتيرة آخر 3 أيام نصل إلى 100% ✅',waDone:'حققنا 100% من مستهدف الشهر ✅',
+  ofN:(r,n)=>`${r} من ${n}`,days:'يوم',
+ },
+ en:{nTitle:'Qualification news',nSub:(d,a,b)=>`Day ${d} · in ${a} · out ${b}`,nBtn:(n)=>`📋 See all news (${n})`,nHide:'Hide news',
+  tgIn:'🎉 Entered prizes',tgOut:'⚠️ Dropped out',tgJump:'🚀 Today’s jump',tgClimb:'⬆️ Climber',tgStar:'⭐ Star of the day',tgTier:'🔁 Category change',
+  nPts:(x)=>`+${x} pts`,nRank:(r)=>`now #${r}`,nMv:(m)=>`up ${m} places`,nNowTier:(t)=>`projected: ${t}`,nWas:(t)=>`was: ${t}`,nPos:(p)=>`#${p} seller yesterday`,
+  brand:'Athar Competition',brandSub:'MATCH race · October 2026',dataTo:'Data through',daysLeft:'Countdown',announce:'Results',updated:'Last updated',cdD:'days',cdH:'hrs',cdM:'min',cdS:'sec',
+  nMine:'My store',nCar:'Car race',nBoard:'Prize board',nClose:'One step away',nMovers:'Risers',nStars:'Sales stars',nAreas:'Areas',nAll:'All stores',nRules:'How to win',
+  pulseEy:'Month pulse',findLbl:'Type your store, employee number, or name',findPh:'e.g. Abraj · 2958 · Ahmed',
+  carEy:'Category A · one car, company-wide',carH:'The car race',carP:'The finish line is 100% of target, plus the MATCH monthly sales threshold for the car. Every store that can compete for it is on the track.',
+  boardEy:'If the month ended at today’s pace',boardH:'Projected prize board',boardP:'Stores projected at 100%+ are ranked by achievement, and each takes the highest category its sales threshold allows. One store, one prize, won by its top seller.',
+  closeEy:'The queue',closeH:'One step from a prize',closeP:'Stores between 85% and 100% of target, with how much each needs to lift its last-3-days pace to finish at 100%.',
+  movEy:'Momentum',movH:'Biggest risers',starEy:'People',starH:'Sales stars',starP:'Ranked by sales on each person’s own user since 1 October. Sales on the store account don’t count toward staff rankings.',
+  areaEy:'For coaching · area managers are outside the competition',areaH:'Area league',allEy:'Saudi Arabia',allH:'All stores',allP:'Tap a store to open its card. Tap a column header to sort.',filterPh:'Search',
+  rulesEy:'From the Athar program guide · launch version',rulesH:'How to win',thrH:'Prizes and MATCH thresholds',thrSub:'100% of target plus the category’s monthly sales threshold',exH:'What takes you out',exSub:'Any official violation logged in MenaMe during the month',cycH:'After month end',
+  ach:'Achievement',rank:'Rank',ly:'vs last year',
+  inZone:'In the prize zone',near:'Very close',out:'Not in the race yet',
+  headline:(a,n,c)=>`MATCH is at <em>${a}</em> of target, with <em>${n}</em> stores on course for a prize. ${c}`,
+  carNone:'The car is still open.',carLead:(s)=>`${s} leads the car race.`,
+  pMonth:'MATCH KSA achievement',pMonthS:(m)=>`${m} of the full October target done`,pIn:'Stores in the prize zone',pInS:'Projected ≥100% with sales threshold',pNear:'One step away',pNearS:'Between 85% and 100%',pLy:'vs last October',pLyS:'Like-for-like stores, same dates',
+  k3:'Last 3 days',k7:'Last 7 days',kDay:'Yesterday',kMonth:'Of full-month target',kAtv:'ATV vs company',kConv:'Conversion (visitors → sales)',
+  needTitle:'What it takes to hit 100%',
+  needUp:(x)=>`Lift your last-3-days performance by <b>${x}</b> and hold it to month end to reach 100%.`,
+  needKeep:(x)=>`Hold your last-3-days performance and you reach 100%, with ${x} to spare.`,
+  needDone:'Month target done. Every extra sale lifts your rank.',
+  nextUp:(t,x)=>`For ${t}: lift the pace by ${x}.`,nextKeep:(t)=>`At your last-3-days pace you move up to ${t}.`,
+  calcLbl:'Try it: change last-3-days performance by',calcRes:(p,t)=>`Month end: <b>${p}</b> of target · ${t}`,slotNote:'(if a slot is open)',
+  zoneNow:'Projected prize now',noPrize:'No prize yet',storeTeam:'Store team',share:'Share of store sales',winnerNote:'The top seller in the store takes the prize.',
+  carTeam:'Car store: 1st wins the car, 2nd a phone, 3rd an iPad, and the rest of the team a voucher.',
+  flag60:(n)=>`Heads up: ${n} makes up more than 60% of store sales, so the store goes to review before results are approved.`,
+  copyBtn:'Copy WhatsApp message',clearBtn:'Change',copied:'Copied',copyFail:'Select the text and copy it',
+  youRank:(r,n)=>`You’re ${r} of ${n} in your store`,ofTop:(x)=>`Your sales = ${x} of the store leader’s`,youTop:'You’re top of your store right now',
+  staffNote:'The store’s prize goes to the top seller on their own user. Always sell on your own account.',
+  sShare:'Your share of store sales',sG7:'Last 7 days vs the 7 before',sAtv:'Your ATV vs company',
+  dailyChart:'Cumulative achievement (% of month target)',actual:'Actual',tgtLine:'Target',projL:'Projected',
+  kStore:'Store',kStaff:'Staff',
+  carProj:'clears the car threshold',carNeed:(x)=>`needs ${x} above projection for the car threshold`,
+  slots:(n)=>`${n} prizes`,slot1:'One prize',emptyTier:'No store qualifies yet. This spot is open.',
+  boardNote:'A daily indicator to keep the race visible. The car and the 40 other prizes are shared between IBRAQ and MATCH, with 34 for the Saudi market. Official results come on 10 November after reconciliation, audit, and violation checks.',
+  upTag:(x)=>`lift ${x}`,keepTag:'hold the pace',
+  mvDay:'Best day yesterday',mvDayS:(d)=>`Achievement on ${d} vs that day’s target`,mvWeek:'Week acceleration',mvWeekS:'Last 7 days vs the 7 before (achievement points)',mvLy:'Growth vs last year',mvLyS:'Month to date, like-for-like',pts:'pts',
+  stTop:'Top sellers',stTopS:'Since 1 October · figure = share of their store’s sales',stHot:'Fastest growing',stHotS:'Last 7 days vs the 7 before',stAtv:'Highest ATV',stAtvS:'Vs company average · 60+ transactions',
+  amCols:['Area manager','Stores','Achievement','In zone','Close','vs LY','Best store'],
+  allCols:['#','Store','City','Area','Achievement','Last 3 days','Yesterday','Needed for 100%','Projected prize','Store ceiling','vs LY','Top seller'],
+  allAm:'All areas',allCity:'All cities',allZone:'All statuses',
+  ruleCards:[
+   ['Hit 100% of target','Achievement = net store sales ÷ monthly target. No store enters the ranking below 100%.'],
+   ['Clear the sales threshold','MATCH stores need a minimum monthly sales figure per category, shown in the table below.'],
+   ['Highest achiever takes the highest prize','The car is one company-wide race. Then prizes go down the ranking by achievement, within each market’s quota.'],
+   ['Top seller on their own user wins','In a winning store, the person with the most sales under their own name wins. Store-account sales don’t count.'],
+   ['One store, one prize','A winning store drops out of the other categories that month, and each person can win one prize.'],
+   ['Tie-breaks','Growth vs same month last year, then number of transactions, then average transaction value.']],
+  thrCols:['Cat.','Prize','Count','MATCH monthly threshold','Lock-out after win'],
+  ex:['Manipulating invoices, discounts or returns','Mistreating customers (formal complaint or CCTV)','Unexcused absence or repeated lateness','Uniform, grooming, or phone use on the sales floor','Store cleanliness','Not keeping up perfuming and incense (dated photo or video)'],
+  cyc:[['1–4','Violations file'],['4–6','Results calculated from Odoo'],['6–8','Finance recalculates independently'],['10','Winners announced'],['15','Prizes handed over']],
+  foot:(d)=>`Source: MATCH Sales Dashboard October 2026 (through ${d}) and the Athar program guide. All figures are percentages. Achievement = sales to date ÷ cumulative target to date, which is also the projected month-end achievement at the same pace. The Qatar store (opened 1 Oct) and Dubai (no target) are left out because those markets aren’t in the program quotas yet.`,
+  waStore:(o)=>`🏁 Athar Competition · ${o.name}\nAchievement to ${o.d}: ${o.ach}\nLast 3 days: ${o.a3}\nRank: ${o.rank}\nProjected prize: ${o.prize}\n${o.need}\nLet’s go team, leave your mark 💪`,
+  waUp:(x)=>`To reach 100%: lift last-3-days performance by ${x}`,waKeep:'At our last-3-days pace we reach 100% ✅',waDone:'We hit 100% of the month target ✅',
+  ofN:(r,n)=>`${r} of ${n}`,days:'days',
+ }
+};
+let LANG='ar'; try{ LANG = localStorage.getItem('athar-lang') || 'ar'; }catch(e){}
+const t=(k,...a)=>{const v=S[LANG][k]; return typeof v==='function'?v(...a):v;};
+const tierName=k=>{const x=TIERS.find(z=>z.k===k);return x?x[LANG]:'';};
+const fp=(x,d=1)=>(x*100).toFixed(d)+'%';
+const sg=(x,d=1)=>(x>=0?'+':'')+(x*100).toFixed(d)+'%';
+const N=s=>`<span class="num">${s}</span>`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dateLbl=(i)=>new Date(2026,9,i+1).toLocaleDateString(LANG==='ar'?'ar-SA-u-ca-gregory-nu-latn':'en-GB',{day:'numeric',month:'short'});
+const RACE=D.stores, BY={}; RACE.forEach(s=>BY[s.code]=s);
+const fk=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+'M':Math.round(n/1e3)+'K';
+
+/* header + pulse */
+function renderStatic(){
+  document.documentElement.lang=LANG; document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-t]').forEach(el=>{const v=S[LANG][el.dataset.t]; if(typeof v==='string') el.textContent=v;});
+  document.querySelectorAll('[data-tp]').forEach(el=>el.placeholder=S[LANG][el.dataset.tp]);
+  document.getElementById('bAr').setAttribute('aria-pressed',LANG==='ar'); document.getElementById('bEn').setAttribute('aria-pressed',LANG==='en');
+  document.getElementById('hAsOf').textContent=dateLbl(L); document.getElementById('hUpd').textContent=fmtUpd();
+  document.getElementById('hAnn').textContent=new Date(2026,10,10).toLocaleDateString(LANG==='ar'?'ar-SA-u-ca-gregory-nu-latn':'en-GB',{day:'numeric',month:'short'});
+}
+function renderPulse(){
+  const p=D.pulse, lead=RACE.filter(s=>s.carField)[0], w=RACE.find(s=>s.prize==='A');
+  const carTxt = w ? t('carLead',esc(w.name)) : t('carNone')+' '+t('carLead',esc(lead.name))+` ${N(fp(lead.ach))}`;
+  document.getElementById('headline').innerHTML=t('headline',N(fp(p.ach)),N(p.inz),carTxt);
+  document.getElementById('pulse').innerHTML=`
+   <div class="tile lead"><div class="eyebrow">${t('pMonth')}</div><div class="v">${N(fp(p.ach))}</div>
+     <div class="s">${t('pMonthS',N(fp(p.monthPct,0)))}</div><div class="meter"><i style="width:${Math.min(100,p.monthPct*100)}%"></i></div></div>
+   <div class="tile"><div class="eyebrow">${t('pIn')}</div><div class="v" style="color:var(--good)">${N(p.inz)}</div><div class="s">${t('pInS')}</div></div>
+   <div class="tile"><div class="eyebrow">${t('pNear')}</div><div class="v" style="color:var(--warn)">${N(p.near)}</div><div class="s">${t('pNearS')}</div></div>
+   <div class="tile"><div class="eyebrow">${t('pLy')}</div><div class="v ${p.ly>=0?'up':'dn'}">${N(sg(p.ly))}</div><div class="s">${t('pLyS')}</div></div>`;
+}
+
+/* my lane */
+let MINE=null; try{MINE=JSON.parse(localStorage.getItem('athar-mine')||'null');}catch(e){}
+const INDEX=[...RACE.map(s=>({k:'store',id:s.code,label:s.name,sub:`${s.code} · ${s.city}`,hay:(s.name+' '+s.code+' '+s.city).toLowerCase()})),
+  ...Object.entries(D.staff).map(([raw,p])=>({k:'staff',id:raw,label:p.name||raw,sub:`${p.id} · ${BY[p.store].name}`,hay:(raw+' '+p.name).toLowerCase()}))];
+function zoneChip(s){
+  if(s.zone==='in') return `<span class="status st-in">● ${t('inZone')}</span>`;
+  if(s.zone==='near') return `<span class="status st-near">● ${t('near')}</span>`;
+  return `<span class="status st-out">● ${t('out')}</span>`;
+}
+function tchip(k){ return k?`<span class="chip T-${k}">${tierName(k)}</span>`:`<span class="chip none">${t('noPrize')}</span>`; }
+function needTxt(s){
+  if(s.needUp==null) return t('needDone');
+  return s.needUp>0 ? t('needUp',N('+'+fp(s.needUp,0))) : t('needKeep',N(fp(-s.needUp,0)));
+}
+function paceChart(s){
+  const W=520,H=170,P={l:34,r:8,t:12,b:22};
+  const mx=Math.max(110,s.pj[s.pj.length-1]*1.05,s.ct[NDAYS-1]*1.05);
+  const x=i=>P.l+(W-P.l-P.r)*i/(NDAYS-1), y=v=>H-P.b-(H-P.t-P.b)*v/mx;
+  const path=(arr,o=0)=>arr.map((v,i)=>(i?'L':'M')+x(i+o).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const area=path(s.ca)+` L${x(L).toFixed(1)} ${y(0)} L${x(0).toFixed(1)} ${y(0)} Z`;
+  const ticks=[0,9,19,30].map(i=>`<text x="${x(i)}" y="${H-6}" font-size="10" fill="var(--muted)" text-anchor="${i===0?'start':i===30?'end':'middle'}" direction="ltr">${dateLbl(i)}</text>`).join('');
+  const grid=[25,50,75,100].map(v=>`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="${v===100?'var(--gold)':'var(--line)'}" stroke-width="${v===100?1.5:1}"/><text x="${P.l-6}" y="${y(v)+3}" font-size="10" fill="var(--muted)" text-anchor="end">${v}%</text>`).join('');
+  return `<div class="chart"><div class="eyebrow" style="margin-bottom:4px">${t('dailyChart')}</div>
+  <svg dir="ltr" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('dailyChart')}">${grid}
+   <path d="${path(s.ct)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+   <path d="${area}" fill="var(--brand)" opacity=".12"/>
+   <path d="${path(s.ca)}" fill="none" stroke="var(--brand)" stroke-width="2.5"/>
+   <path d="${path(s.pj,L)}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="2 4"/>
+   <circle cx="${x(L)}" cy="${y(s.ca[L])}" r="4.5" fill="var(--brand)"/>${ticks}</svg>
+  <div style="display:flex;gap:14px;font-size:.75rem;color:var(--muted);flex-wrap:wrap">
+   <span><span style="color:var(--brand)">━</span> ${t('actual')} ${N(fp(s.ca[L]/100,0))}</span><span>┅ ${t('tgtLine')}</span><span><span style="color:var(--gold)">┅</span> ${t('projL')} ${N(fp(s.pj[s.pj.length-1]/100,0))}</span></div></div>`;
+}
+function storeCard(s, me){
+  let nxt=''; if(s.nextTier){const [k,u]=s.nextTier; nxt=' '+(u>0?t('nextUp',tierName(k),N('+'+fp(u,0))):t('nextKeep',tierName(k)));}
+  const top=s.team[0], max=top?top[3]:1;
+  const flag=top&&top[3]>.6?`<div class="flag">⚠ ${t('flag60',esc(top[0]))}</div>`:'';
+  const rows=s.team.slice(0,12).map(p=>`<tr class="${me&&me===p[4]?'me':''}"><td><span class="pos ${p[2]===1?'p1':''}">${p[2]}</span></td>
+    <td>${esc(p[0])} <span class="muted num" style="font-size:.72rem">${esc(p[1])}</span></td>
+    <td style="width:38%"><div class="bar"><i style="width:${p[3]/max*100}%"></i></div></td><td class="n num">${fp(p[3],0)}</td></tr>`).join('');
+  const i0=s.steps.findIndex(z=>z[0]===0);
+  const kv=(lbl,v,cls='')=>`<div><span>${lbl}</span><b class="${cls}">${v}</b></div>`;
+  return `<div class="lane">
+   <div>
+     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+      <div><div class="eyebrow">${esc(s.code)} · ${esc(s.city)} · ${esc(s.am)}</div><h2 style="margin-top:2px">${esc(s.name)}</h2></div>${zoneChip(s)}</div>
+     <div style="display:flex;align-items:flex-end;gap:16px;margin-top:12px;flex-wrap:wrap">
+      <div><div class="big ${s.ach>=1?'up':''}">${N(fp(s.ach))}</div><div class="muted" style="font-size:.8rem">${t('ach')} · ${t('rank')} ${N(t('ofN',s.rank,RACE.length))}</div></div>
+      <div><div class="eyebrow">${t('zoneNow')}</div>${tchip(s.prize)}</div></div>
+     <div class="kv">
+      ${kv(t('k3'),fp(s.ach3,0),s.ach3>=1?'up':'')}${kv(t('k7'),fp(s.ach7,0),s.ach7>=1?'up':'')}${kv(t('kDay'),fp(s.dayAch,0),s.dayAch>=1?'up':'')}
+      ${kv(t('ly'),s.lyG==null?'—':sg(s.lyG),s.lyG==null?'':(s.lyG>=0?'up':'dn'))}${kv(t('kAtv'),sg(s.atvIdx,0),s.atvIdx>=0?'up':'dn')}${kv(t('kConv'),s.conv==null?'—':fp(s.conv,0))}
+     </div>
+     <div class="need"><div style="font-weight:600">${t('needTitle')}</div>
+       <div style="font-size:.9rem;margin-top:2px">${needTxt(s)}${nxt}</div>
+       <div class="calc"><label for="calc-${s.code}" style="font-size:.82rem">${t('calcLbl')} <b class="num" id="cv-${s.code}"></b></label>
+         <input type="range" id="calc-${s.code}" min="0" max="${s.steps.length-1}" step="1" value="${i0}" data-store="${s.code}">
+         <div id="cr-${s.code}" style="font-size:.88rem"></div></div></div>
+     <div class="actions"><button class="btn" data-wa="${s.code}">${t('copyBtn')}</button><button class="btn ghost" data-clear="1">${t('clearBtn')}</button></div>
+   </div>
+   <div>${paceChart(s)}
+     <div class="eyebrow" style="margin-top:14px">${t('storeTeam')}</div>
+     <div style="overflow-x:auto"><table class="roster"><thead><tr><th>#</th><th></th><th></th><th class="n">${t('share')}</th></tr></thead><tbody>${rows}</tbody></table></div>
+     <div class="muted" style="font-size:.78rem;margin-top:6px">${s.prize==='A'||s.ceiling==='A'?t('carTeam'):t('winnerNote')}</div>${flag}
+   </div></div>`;
+}
+function calcUpdate(code,i){
+  const s=BY[code], [u,pa,k]=s.steps[i];
+  document.getElementById('cv-'+code).textContent=(u>=0?'+':'')+u+'%';
+  document.getElementById('cr-'+code).innerHTML=t('calcRes',N(fp(pa)),k?tierName(k)+' '+t('slotNote'):t('noPrize'));
+}
+function staffCard(raw){
+  const p=D.staff[raw], s=BY[p.store]; const st=(lbl,v,cls='')=>`<div><div class="big ${cls}" style="font-size:1.8rem">${N(v)}</div><div class="muted" style="font-size:.8rem">${lbl}</div></div>`;
+  return `<div class="panel" style="margin-bottom:14px;background:var(--gold-soft);border-color:var(--gold)">
+    <div class="eyebrow">${t('kStaff')} · ${esc(p.id)}</div><h2>${esc(p.name)}</h2>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px">
+     ${st(t('sShare'),fp(p.share,0))}${p.g7==null?'':st(t('sG7'),sg(p.g7,0),p.g7>=0?'up':'dn')}${p.atvIdx==null?'':st(t('sAtv'),sg(p.atvIdx,0),p.atvIdx>=0?'up':'dn')}
+     <div style="align-self:center;font-weight:600">${t('youRank',p.rank,p.of)}<br><span class="muted" style="font-weight:400">${p.rank===1?t('youTop'):t('ofTop',N(fp(p.ofTop,0)))}</span></div>
+    </div><div class="muted" style="font-size:.8rem;margin-top:8px">${t('staffNote')}</div></div>`+storeCard(s,raw);
+}
+function wireCalc(out){ out.querySelectorAll('input[type=range]').forEach(r=>{calcUpdate(r.dataset.store,+r.value); r.addEventListener('input',()=>calcUpdate(r.dataset.store,+r.value));}); }
+function renderMine(){
+  const out=document.getElementById('mineOut');
+  if(!MINE||(MINE.k==='store'&&!BY[MINE.id])||(MINE.k==='staff'&&!D.staff[MINE.id])){
+    const s=RACE.filter(z=>z.ceiling==='A')[0];
+    out.innerHTML=`<div class="eyebrow" style="margin-bottom:10px">${LANG==='ar'?'مثال: بطاقة متصدّر سباق السيارة. ابحث عن فرعك أو اسمك لترى بطاقتك.':'Example: the car-race leader’s card. Search your store or name to see yours.'}</div>`+storeCard(s);
+  } else out.innerHTML = MINE.k==='store'?storeCard(BY[MINE.id]):staffCard(MINE.id);
+  wireCalc(out);
+}
+function pick(item){ MINE={k:item.k,id:item.id}; try{localStorage.setItem('athar-mine',JSON.stringify(MINE));}catch(e){}
+  document.getElementById('q').value=''; document.getElementById('sugg').hidden=true; renderMine(); }
+function openStore(code){ pick({k:'store',id:code}); document.getElementById('mine').scrollIntoView({behavior:'smooth'}); }
+function renderQuick(){
+  const ex=[RACE[0],RACE.find(s=>s.ceiling==='A'),RACE.find(s=>s.zone==='near'&&s.ceiling!=='A')].filter(Boolean);
+  document.getElementById('quick').innerHTML=ex.map(s=>`<button data-open="${s.code}">${esc(s.name)}</button>`).join('');
+}
+(function wireSearch(){
+  const q=document.getElementById('q'), box=document.getElementById('sugg'); let hits=[],sel=0;
+  const draw=()=>{ box.innerHTML=hits.map((h,i)=>`<button class="${i===sel?'on':''}" data-i="${i}"><span class="k">${h.k==='store'?t('kStore'):t('kStaff')}</span><span style="min-width:0"><b style="display:block">${esc(h.label)}</b><small class="muted">${esc(h.sub)}</small></span></button>`).join(''); box.hidden=!hits.length; };
+  q.addEventListener('input',()=>{ const v=q.value.trim().toLowerCase(); sel=0; hits=v.length<2?[]:INDEX.filter(h=>h.hay.includes(v)).slice(0,10); draw(); });
+  q.addEventListener('keydown',e=>{ if(box.hidden) return;
+    if(e.key==='ArrowDown'){sel=Math.min(sel+1,hits.length-1);draw();e.preventDefault();}
+    else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);draw();e.preventDefault();}
+    else if(e.key==='Enter'&&hits[sel]){pick(hits[sel]);e.preventDefault();}
+    else if(e.key==='Escape'){box.hidden=true;} });
+  box.addEventListener('click',e=>{const b=e.target.closest('button'); if(b) pick(hits[+b.dataset.i]);});
+  document.addEventListener('click',e=>{ if(!e.target.closest('.sbox')) box.hidden=true; });
+})();
+
+/* car race */
+function renderTrack(){
+  const field=RACE.filter(s=>s.carField).slice(0,12);
+  const lo=.6, hi=1.15, pos=v=>Math.max(0,Math.min(1,(v-lo)/(hi-lo)))*100, side=LANG==='ar'?'right':'left';
+  const car=c=>`<svg class="car" viewBox="0 0 30 22" aria-hidden="true" style="${side}:0"><path d="M3 14 L5 8 Q6 6 9 6 L18 6 Q21 6 23 9 L26 11 Q28 12 28 14 L28 16 L3 16 Z" fill="${c}"/><rect x="9" y="8" width="5" height="3.5" rx="1" fill="var(--surface)"/><rect x="15.5" y="8" width="4.5" height="3.5" rx="1" fill="var(--surface)"/><circle cx="9" cy="16.5" r="3" fill="var(--ink)"/><circle cx="22" cy="16.5" r="3" fill="var(--ink)"/></svg>`;
+  const rows=field.map((s,i)=>`<div class="trow li click" data-open="${s.code}" style="grid-template-columns:170px 1fr 120px;border-top:0">
+     <div class="nm">${esc(s.name)}<small>${esc(s.city)} · ${esc(s.am)}</small></div>
+     <div class="road"><div class="fill" style="width:${pos(s.ach)}%"></div><div class="fin" style="${side}:${pos(1)}%"></div>
+       <div style="position:absolute;top:50%;${side}:${pos(s.ach)}%">${car(i===0?'var(--t-car)':'var(--muted)')}</div></div>
+     <div class="pct">${N(fp(s.ach))}<small>${s.carOk?t('carProj'):t('carNeed',N('+'+fp(s.carGap,0)))}</small></div></div>`).join('');
+  const ticks=[.7,.8,.9,1,1.1].map(v=>`<span style="${side}:${pos(v)}%">${Math.round(v*100)}%</span>`).join('');
+  document.getElementById('track').innerHTML=rows+`<div class="axis"><span></span><div class="ticks">${ticks}</div><span></span></div>`;
+}
+/* prize board */
+function renderBoard(){
+  document.getElementById('prizes').innerHTML=TIERS.map(tt=>{
+    const w=RACE.filter(s=>s.prize===tt.k);
+    const items=w.length?w.map(s=>`<div class="win li click" data-open="${s.code}" style="display:flex"><div class="w"><b>${esc(s.name)}</b><small>🏅 ${esc(s.team[0]?s.team[0][0]:'—')} · ${esc(s.city)}</small></div><div class="p">${N(fp(s.ach))}</div></div>`).join('')
+      :`<div class="empty">${t('emptyTier')}</div>`;
+    return `<div class="pcol" style="${tt.k==='A'?'grid-column:1/-1;border-color:var(--t-car)':''}"><h3><span class="T-${tt.k}">${tt[LANG]}</span><span class="chip T-${tt.k}">${tt.k}</span></h3>
+     <div class="th">${tt.n===1?t('slot1'):t('slots',tt.n)}</div>${items}</div>`;}).join('');
+  document.getElementById('boardNote').textContent=t('boardNote');
+}
+function upTag(s){ if(s.needUp==null) return ''; return s.needUp>0?`<span class="dn">${t('upTag',N('+'+fp(s.needUp,0)))}</span>`:`<span class="up">${t('keepTag')}</span>`; }
+/* close */
+function renderClose(){
+  const c=RACE.filter(s=>s.zone==='near'), half=Math.ceil(c.length/2);
+  const col=a=>`<div class="panel">${a.map(s=>`<div class="li click" data-open="${s.code}"><span class="pos">${s.rank}</span><div class="w"><b>${esc(s.name)}</b><small>${esc(s.city)} · ${tchip(s.ceiling)}</small></div>
+    <div class="r">${N(fp(s.ach))}<small>${upTag(s)}</small></div></div>`).join('')}</div>`;
+  document.getElementById('closeList').innerHTML=c.length?col(c.slice(0,half))+col(c.slice(half)):'';
+}
+/* movers */
+function listPanel(title,sub,items){ return `<div class="panel"><h3>${title}</h3><div class="sub">${sub}</div>${items}</div>`; }
+function renderMovers(){
+  const li=(s,i,v,sub)=>`<div class="li click" data-open="${s.code}"><span class="pos ${i===0?'p1':''}">${i+1}</span><div class="w"><b>${esc(s.name)}</b><small>${esc(s.city)}</small></div><div class="r">${v}<small>${sub||''}</small></div></div>`;
+  const day=[...RACE].sort((a,b)=>b.dayAch-a.dayAch).slice(0,6), acc=[...RACE].sort((a,b)=>b.accel-a.accel).slice(0,6), ly=RACE.filter(s=>s.lyG!=null).sort((a,b)=>b.lyG-a.lyG).slice(0,6);
+  document.getElementById('moverList').innerHTML=
+    listPanel(t('mvDay'),t('mvDayS',dateLbl(L)),day.map((s,i)=>li(s,i,N(fp(s.dayAch,0)))).join(''))+
+    listPanel(t('mvWeek'),t('mvWeekS'),acc.map((s,i)=>li(s,i,`<span class="up">${N((s.accel>=0?'+':'')+(s.accel*100).toFixed(0))} ${t('pts')}</span>`,N(fp(s.ach7,0)))).join(''))+
+    listPanel(t('mvLy'),t('mvLyS'),ly.map((s,i)=>li(s,i,`<span class="up">${N(sg(s.lyG))}</span>`)).join(''));
+}
+/* stars */
+function renderStars(){
+  const li=(r,i,v)=>`<div class="li click" data-staff="${esc(r[0])}"><span class="pos ${i===0?'p1':''}">${i+1}</span><div class="w"><b>${esc(r[1])}</b><small>${esc(BY[r[3]].name)} · ${esc(r[2])}</small></div><div class="r">${v}</div></div>`;
+  document.getElementById('starList').innerHTML=
+    listPanel(t('stTop'),t('stTopS'),D.top.map((r,i)=>li(r,i,N(fp(r[4],0)))).join(''))+
+    listPanel(t('stHot'),t('stHotS'),D.hot.map((r,i)=>li(r,i,`<span class="up">${N(sg(r[4],0))}</span>`)).join(''))+
+    listPanel(t('stAtv'),t('stAtvS'),D.atv.map((r,i)=>li(r,i,`<span class="up">${N(sg(r[4],0))}</span>`)).join(''));
+}
+/* areas */
+function achCell(a){ const c=a>=1?'var(--good)':a>=.85?'var(--warn)':'var(--bad)';
+  return `<div class="achcell"><span class="num">${fp(a)}</span><div class="minibar"><i style="width:${Math.min(100,a*100)}%;background:${c}"></i></div></div>`; }
+function renderAreas(){
+  const c=t('amCols');
+  document.getElementById('amTbl').innerHTML=`<thead><tr><th>${c[0]}</th><th class="n">${c[1]}</th><th class="n">${c[2]}</th><th class="n">${c[3]}</th><th class="n">${c[4]}</th><th class="n">${c[5]}</th><th>${c[6]}</th></tr></thead><tbody>`+
+   D.areas.map(r=>{const b=BY[r.best]; return `<tr data-open="${b.code}"><td><b>${esc(r.am)}</b></td><td class="n num">${r.n}</td><td class="n">${achCell(r.ach)}</td>
+   <td class="n num up">${r.inz}</td><td class="n num" style="color:var(--warn)">${r.near}</td><td class="n num ${r.ly==null?'':(r.ly>=0?'up':'dn')}">${r.ly==null?'—':sg(r.ly)}</td><td>${esc(b.name)} <span class="muted num">${fp(b.ach,0)}</span></td></tr>`;}).join('')+'</tbody>';
+}
+/* all stores */
+let SORT={k:'rank',d:1};
+function fillFilters(){
+  const am=[...new Set(RACE.map(s=>s.am).filter(Boolean))].sort(), city=[...new Set(RACE.map(s=>s.city))].sort();
+  const v=['fAm','fCity','fZone'].map(id=>document.getElementById(id).value);
+  document.getElementById('fAm').innerHTML=`<option value="">${t('allAm')}</option>`+am.map(x=>`<option>${esc(x)}</option>`).join('');
+  document.getElementById('fCity').innerHTML=`<option value="">${t('allCity')}</option>`+city.map(x=>`<option>${esc(x)}</option>`).join('');
+  document.getElementById('fZone').innerHTML=`<option value="">${t('allZone')}</option><option value="in">${t('inZone')}</option><option value="near">${t('near')}</option><option value="out">${t('out')}</option>`;
+  ['fAm','fCity','fZone'].forEach((id,i)=>document.getElementById(id).value=v[i]||'');
+}
+function renderAll(){
+  const am=fAm.value, city=fCity.value, z=fZone.value, q=fTxt.value.trim().toLowerCase();
+  let r=RACE.filter(s=>(!am||s.am===am)&&(!city||s.city===city)&&(!z||s.zone===z)&&(!q||(s.name+s.code).toLowerCase().includes(q)));
+  const key={rank:s=>s.rank,name:s=>s.name,city:s=>s.city,am:s=>s.am,ach:s=>-s.ach,a3:s=>-s.ach3,day:s=>-s.dayAch,need:s=>s.needUp??-9,prize:s=>s.prize||'Z',ceil:s=>s.ceiling||'Z',ly:s=>-(s.lyG??-9),top:s=>s.team[0]?s.team[0][0]:'~'}[SORT.k];
+  r.sort((a,b)=>{const x=key(a),y=key(b);return (x>y?1:x<y?-1:0)*SORT.d;});
+  const c=t('allCols'), ks=['rank','name','city','am','ach','a3','day','need','prize','ceil','ly','top'], nums=[0,4,5,6,7,10];
+  allTbl.innerHTML=`<thead><tr>${c.map((h,i)=>`<th data-sort="${ks[i]}" class="${nums.includes(i)?'n':''}">${h}${SORT.k===ks[i]?(SORT.d>0?' ↓':' ↑'):''}</th>`).join('')}</tr></thead><tbody>`+
+   r.map(s=>`<tr data-open="${s.code}"><td class="n num">${s.rank}</td><td><b>${esc(s.name)}</b> <span class="muted num" style="font-size:.72rem">${s.code}</span></td><td>${esc(s.city)}</td><td>${esc(s.am)}</td>
+   <td class="n">${achCell(s.ach)}</td><td class="n num ${s.ach3>=1?'up':''}">${fp(s.ach3,0)}</td><td class="n num ${s.dayAch>=1?'up':''}">${fp(s.dayAch,0)}</td><td class="n">${s.needUp==null?'<span class="up">✓</span>':upTag(s)}</td>
+   <td>${s.prize?tchip(s.prize):'<span class="muted">—</span>'}</td><td>${tchip(s.ceiling)}</td>
+   <td class="n num ${s.lyG==null?'':(s.lyG>=0?'up':'dn')}">${s.lyG==null?'—':sg(s.lyG)}</td><td>${s.team[0]?esc(s.team[0][0]):'—'}</td></tr>`).join('')+'</tbody>';
+}
+allTbl.addEventListener('click',e=>{const th=e.target.closest('th'); if(th){const k=th.dataset.sort; SORT=SORT.k===k?{k,d:-SORT.d}:{k,d:1}; renderAll(); e.stopPropagation();}});
+['fAm','fCity','fZone','fTxt'].forEach(id=>document.getElementById(id).addEventListener('input',renderAll));
+/* rules */
+function renderRules(){
+  ruleCards.innerHTML=t('ruleCards').map((r,i)=>`<div class="rule"><div class="n num">${i+1}</div><h3>${r[0]}</h3><p>${r[1]}</p></div>`).join('');
+  const c=t('thrCols');
+  thrTbl.innerHTML=`<thead><tr>${c.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`+
+    TIERS.map(tt=>`<tr><td><span class="chip T-${tt.k}">${tt.k}</span></td><td>${tt[LANG]}</td><td class="num">${tt.n}</td><td class="num">≥ ${fk(tt.min)}</td><td>${tt.ex[LANG]}</td></tr>`).join('')+'</tbody>';
+  exList.innerHTML=t('ex').map((x,i)=>`<div class="li" style="grid-template-columns:24px 1fr"><span class="pos">${i+1}</span><div class="w" style="font-size:.88rem">${x}</div></div>`).join('');
+  cycle.innerHTML=t('cyc').map(c=>`<div><b>${LANG==='ar'?'يوم':'Day'} ${c[0]}</b>${c[1]}</div>`).join('');
+  foot.textContent=t('foot',dateLbl(L));
+}
+/* share */
+function toast(msg){const el=document.getElementById('toast'); el.textContent=msg; el.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>el.hidden=true,1800);}
+function waText(code){
+  const s=BY[code];
+  const need=s.needUp==null?t('waDone'):(s.needUp>0?t('waUp','+'+fp(s.needUp,0)):t('waKeep'));
+  return t('waStore',{name:s.name,d:dateLbl(L),ach:fp(s.ach),a3:fp(s.ach3,0),rank:t('ofN',s.rank,RACE.length),prize:s.prize?tierName(s.prize):t('noPrize'),need});
+}
+document.addEventListener('click',e=>{
+  const wa=e.target.closest('[data-wa]');
+  if(wa){ const txt=waText(wa.dataset.wa);
+    const fb=()=>{ let ta=wa.parentElement.querySelector('textarea'); if(!ta){ta=document.createElement('textarea');ta.className='copyfb';wa.parentElement.appendChild(ta);} ta.value=txt; ta.select(); toast(t('copyFail')); };
+    try{ navigator.clipboard.writeText(txt).then(()=>toast(t('copied')),fb); }catch(err){ fb(); } return; }
+  if(e.target.closest('[data-clear]')){ MINE=null; try{localStorage.removeItem('athar-mine');}catch(er){} renderMine(); document.getElementById('q').focus(); return; }
+  const st=e.target.closest('[data-staff]'); if(st){ pick({k:'staff',id:st.dataset.staff}); document.getElementById('mine').scrollIntoView({behavior:'smooth'}); return; }
+  const o=e.target.closest('[data-open]'); if(o && !e.target.closest('th')) openStore(o.dataset.open);
+});
+/* news ticker */
+let NOPEN=false;
+function newsItem(n){
+  const s=BY[n.store], who=n.k==='star'?`${esc(n.name)} (${esc(n.id)})`:`${esc(s.name)} (${esc(s.code)})`;
+  const tag={in:'tgIn',out:'tgOut',jump:'tgJump',climb:'tgClimb',star:'tgStar',tier:'tgTier'}[n.k];
+  let meta=esc(s.city), extra='';
+  if(n.k==='in') extra=t('nNowTier',tierName(n.tier))+' · '+t('nRank',n.rank);
+  if(n.k==='tier') extra=t('nNowTier',tierName(n.tier))+' · '+t('nWas',tierName(n.was));
+  if(n.k==='out') extra=t('nWas',tierName(n.was))+' · '+t('nRank',n.rank);
+  if(n.k==='jump') extra=`<span class="up">${N(t('nPts',n.pts))}</span> · ${t('nRank',n.rank)}${n.mv>0?' · '+t('nMv',n.mv):''}`;
+  if(n.k==='climb') extra=`<span class="up">${t('nMv',n.mv)}</span> · ${t('nRank',n.rank)}`;
+  if(n.k==='star'){ meta=esc(s.name); extra=t('nPos',n.pos); }
+  const attr=n.k==='star'?`data-staff="${esc(n.raw)}"`:`data-open="${s.code}"`;
+  return `<button class="nitem" ${attr}><span class="tag tg-${n.k}">${t(tag)}</span><span class="who">${who}</span><span class="meta">· ${meta}</span><span class="meta">${extra}</span></button>`;
+}
+function renderNews(){
+  const nw=D.news, items=nw.items.map(newsItem).join('');
+  document.getElementById('nTitle').textContent=t('nTitle');
+  document.getElementById('nSub').innerHTML=t('nSub',N(nw.day+1),N(nw.entered),N(nw.dropped));
+  const btn=document.getElementById('nBtn'); btn.textContent=NOPEN?t('nHide'):t('nBtn',nw.items.length); btn.setAttribute('aria-expanded',NOPEN);
+  const tr=document.getElementById('ntrack'); tr.innerHTML=items+`<span aria-hidden="true" style="display:contents">${items}</span>`;
+  tr.classList.add('run'); tr.style.setProperty('--dur',Math.max(40,nw.items.length*6)+'s');
+  const all=document.getElementById('nall'); all.innerHTML=items; all.hidden=!NOPEN;
+}
+document.getElementById('nBtn').addEventListener('click',()=>{NOPEN=!NOPEN; renderNews();});
+function renderAllViews(){ renderStatic(); renderNews(); renderPulse(); renderQuick(); renderMine(); renderTrack(); renderBoard(); renderClose(); renderMovers(); renderStars(); renderAreas(); fillFilters(); renderAll(); renderRules(); }
+function setLang(l){ LANG=l; try{localStorage.setItem('athar-lang',l);}catch(e){} renderAllViews(); }
+bAr.onclick=()=>setLang('ar'); bEn.onclick=()=>setLang('en');
+
+// "Last updated" (build time, shown in the GCC zone) and a live countdown to the competition close.
+function fmtUpd(){ if(!D.built) return '—'; const dt=new Date(D.built);
+  try{ return dt.toLocaleString(LANG==='ar'?'ar-SA-u-ca-gregory-nu-latn':'en-GB',
+      {timeZone:D.tz||'Asia/Riyadh',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return dt.toLocaleString(); } }
+const _tzOff=(D.tz==='Asia/Dubai'||D.tz==='Asia/Muscat')?4:3;                 // GCC has no DST, so a fixed offset is exact
+const DEADLINE=Date.UTC(2026,10,1,0,0,0)-_tzOff*3600*1000;                    // end of 31 Oct 2026 (GCC) = competition close
+function tickCD(){ let s=Math.max(0,Math.floor((DEADLINE-Date.now())/1000));
+  const d=Math.floor(s/86400); s-=d*86400; const h=Math.floor(s/3600); s-=h*3600; const m=Math.floor(s/60); s-=m*60;
+  const q={d,h,m,s}; for(const k in q){ const e=document.querySelector(`#hCountdown [data-cd="${k}"]`); if(e) e.textContent=String(q[k]).padStart(2,'0'); } }
+
+renderAllViews();
+tickCD(); setInterval(tickCD,1000);
+</script>
+

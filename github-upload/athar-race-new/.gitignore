@@ -1,0 +1,8 @@
+# Never commit these: they contain sales amounts or secrets.
+.env
+data/
+site/
+public/
+cache.enc
+github-token.txt
+__pycache__/

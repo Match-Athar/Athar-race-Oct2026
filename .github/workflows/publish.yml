@@ -1,0 +1,58 @@
+# Builds the PUBLIC race board from the LIVE Odoo BI API plus the reference workbook (data/master.xlsx),
+# and publishes it with GitHub Pages. Sales/transactions/staff/last-year come from the API; targets,
+# the daily curve, prize ceilings, names, area managers and footfall come from data/master.xlsx.
+# Set repository secrets ODOO_API_URL and ODOO_API_TOKEN (and optionally ODOO_TZ). Use a PRIVATE repo
+# (the reference workbook contains sales amounts). Only the race board (index.html) is published;
+# internal.html is never published here.
+name: Publish Athar board
+
+on:
+  push:
+    paths: ["data/**", "templates/**", "athar/**", "run.py"]
+  workflow_dispatch: {}
+  # Live board: rebuild from the API on a schedule too (every 10 min). Remove if a push rebuild is enough.
+  schedule:
+    - cron: "*/10 * * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Tests
+        run: |
+          python tests/test_rules.py
+          python tests/test_api_race.py
+      - name: Build race board from the live API
+        env:
+          ODOO_API_URL: ${{ secrets.ODOO_API_URL }}
+          ODOO_API_TOKEN: ${{ secrets.ODOO_API_TOKEN }}
+          ODOO_TZ: ${{ secrets.ODOO_TZ }}
+        run: python run.py --api --ref data/master.xlsx --public-only --out site
+      - name: Keep only the public page
+        run: rm -rf site/data site/csv
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

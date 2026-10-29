@@ -1,0 +1,14 @@
+# Built pages are generated — don't commit them.
+site/*
+!site/.gitkeep
+__pycache__/
+*.pyc
+.DS_Store
+# data/ holds the Odoo and target Excel files (sales amounts): keep this repository PRIVATE.
+
+# Secrets: API key and GitHub token never go to GitHub.
+.env
+github-token.txt
+*.tmp
+# Downloaded sales per day (amounts) — regenerated from the API.
+data/api_cache/
